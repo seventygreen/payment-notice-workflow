@@ -1,0 +1,726 @@
+{
+  "name": "Accounts Receivable - Payment Notice Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "options": {
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "id": "email-trigger",
+      "name": "Email Trigger (Gmail/Outlook)",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "credentials": {
+        "imap": {
+          "id": "1",
+          "name": "altra-accounts-receivable@altradimension.com"
+        }
+      },
+      "notes": "Triggers on new payment notice emails\nConfigurable email address\nSLA: < 1min from receipt"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "email_id",
+              "name": "email_id",
+              "value": "={{ $json.uid }}",
+              "type": "string"
+            },
+            {
+              "id": "workflow_start_time",
+              "name": "workflow_start_time",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "sender",
+              "name": "sender",
+              "value": "={{ $json.from.value[0].address }}",
+              "type": "string"
+            },
+            {
+              "id": "subject",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "received_date",
+              "name": "received_date",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            },
+            {
+              "id": "email_body",
+              "name": "email_body",
+              "value": "={{ $json.textPlain || $json.html }}",
+              "type": "string"
+            },
+            {
+              "id": "has_attachments",
+              "name": "has_attachments",
+              "value": "={{ $json.attachments ? true : false }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-email-metadata",
+      "name": "Extract Email Metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300],
+      "notes": "Extract and structure email metadata\nLog: email ID, sender, timestamp, subject"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOGGING_ENDPOINT }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"email_received\",\n  \"timestamp\": \"{{ $json.workflow_start_time }}\",\n  \"email_id\": \"{{ $json.email_id }}\",\n  \"sender\": \"{{ $json.sender }}\",\n  \"subject\": \"{{ $json.subject }}\",\n  \"has_attachments\": {{ $json.has_attachments }},\n  \"metadata\": {\n    \"received_date\": \"{{ $json.received_date }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "log-email-received",
+      "name": "Log: Email Received",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 200],
+      "notes": "Log email receipt with full metadata\nEnables audit trail and monitoring"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "attachment",
+              "name": "attachment_{{ $index }}",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "process-attachments",
+      "name": "Process Attachments",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [680, 300],
+      "notes": "Split attachments for individual processing\nClassify file formats: txt, Word, CSV, Excel, HTML, PDF, JPEG"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $env.GDRIVE_FOLDER_ID }}",
+          "mode": "id"
+        },
+        "name": "={{ $json.filename || 'attachment_' + $json.email_id + '_' + $index }}",
+        "options": {
+          "fileName": "={{ $json.filename }}"
+        }
+      },
+      "id": "store-to-gdrive",
+      "name": "Store to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [900, 300],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2",
+          "name": "Google Drive Account"
+        }
+      },
+      "notes": "Store email and attachments for audit\nConfigurable: GDrive or SharePoint\nLog: storage location, metadata"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOGGING_ENDPOINT }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"attachment_stored\",\n  \"timestamp\": \"{{ $now }}\",\n  \"email_id\": \"{{ $json.email_id }}\",\n  \"file_name\": \"{{ $json.filename }}\",\n  \"storage_location\": \"{{ $json.id }}\",\n  \"file_type\": \"{{ $json.mimeType }}\"\n}",
+        "options": {}
+      },
+      "id": "log-storage",
+      "name": "Log: Storage Complete",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "notes": "Log document storage with location and metadata"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-attachments",
+      "name": "Merge Attachments",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1340, 300],
+      "notes": "Combine all processed attachments back together"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract all payment notice details, deductions, and claims from the following documents.\n\nEmail Subject: {{ $json.subject }}\nEmail Body: {{ $json.email_body }}\n\nAttachments: {{ JSON.stringify($json.attachments) }}\n\nExtract:\n1. Invoice number(s)\n2. Payment amount\n3. All deductions with amounts and reasons\n4. Any supporting evidence or references\n5. Claim details and justifications\n\nReturn structured JSON with all extracted data.",
+        "options": {
+          "systemMessage": "You are a financial document analyst. Extract data with 100% recall - never miss any deductions or claims. Be precise and reference source documents."
+        }
+      },
+      "id": "extract-claims-data",
+      "name": "Extract Claims & Evidence (LLM)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "3",
+          "name": "OpenAI Account"
+        }
+      },
+      "notes": "AI-powered data extraction from attachments\nMetric: 100% recall required\nLog: extracted data with document references"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOGGING_ENDPOINT }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"data_extracted\",\n  \"timestamp\": \"{{ $now }}\",\n  \"email_id\": \"{{ $json.email_id }}\",\n  \"extracted_data\": {{ $json.response }}\n}",
+        "options": {}
+      },
+      "id": "log-extraction",
+      "name": "Log: Data Extraction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 300],
+      "notes": "Log extracted data with references to source documents"
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "index": "={{ $env.VECTOR_STORE_INDEX }}",
+        "queryText": "=Find business rules and contract clauses related to:\n- Invoice: {{ $json.invoice_number }}\n- Deduction types: {{ $json.deduction_types }}\n- Vendor: {{ $json.sender }}",
+        "topK": 10
+      },
+      "id": "rag-query-contracts",
+      "name": "RAG: Query Contracts & Rules",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1,
+      "position": [2000, 300],
+      "notes": "Query RAG for relevant business rules and contracts\nDollar General vendor guide, BRCC rules, contracts\nSwappable with AltraDB"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Validate the following payment notice claims against business rules and contracts.\n\nClaims Data:\n{{ JSON.stringify($json.extracted_data) }}\n\nRelevant Contracts & Rules:\n{{ JSON.stringify($json.rag_results) }}\n\nDetermine:\n1. Are claims valid? (high/low confidence)\n2. Decision: auto-approve, manual-approve, or dispute\n3. Reasoning with specific contract references\n4. Applicable rules and clauses\n5. For disputes: prepare dispute package details\n\nThresholds:\n- Auto-approve: valid (high confidence) AND amount < ${{ $env.AUTO_APPROVE_THRESHOLD }}\n- Manual-approve: valid (low confidence) OR amount >= ${{ $env.AUTO_APPROVE_THRESHOLD }}\n- Dispute: invalid claims\n\nReturn structured JSON with decision, confidence, reasoning, and references.",
+        "options": {
+          "systemMessage": "You are a contract compliance analyst. Validate deductions against business rules with precision. Document all reasoning with contract references. Ensure decisions are reproducible."
+        }
+      },
+      "id": "validate-claims-ai",
+      "name": "Validate Claims (AI Agent)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [2220, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "3",
+          "name": "OpenAI Account"
+        }
+      },
+      "notes": "AI validation against contracts and rules\nMetrics: precision, recall on invalid deductions\nLog: decision with full reasoning and references"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOGGING_ENDPOINT }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"validation_complete\",\n  \"timestamp\": \"{{ $now }}\",\n  \"email_id\": \"{{ $json.email_id }}\",\n  \"decision\": \"{{ $json.decision }}\",\n  \"confidence\": \"{{ $json.confidence }}\",\n  \"reasoning\": {{ $json.reasoning }},\n  \"contract_references\": {{ $json.contract_references }},\n  \"amount\": {{ $json.total_amount }}\n}",
+        "options": {}
+      },
+      "id": "log-validation",
+      "name": "Log: Validation Decision",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2440, 300],
+      "notes": "Log decision with reasoning and references\nEnsures reproducibility and audit compliance"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "auto-approve-condition",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "auto-approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "route-auto-approve",
+      "name": "Route: Auto-Approve?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2660, 300],
+      "notes": "Route based on decision type"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "manual-approve-condition",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "manual-approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "route-manual-approve",
+      "name": "Route: Manual Approve?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2660, 500],
+      "notes": "Check if manual approval needed"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=✅ *Auto-Approved Deduction*\n\n*Invoice:* {{ $json.invoice_number }}\n*Amount:* ${{ $json.total_amount }}\n*Sender:* {{ $json.sender }}\n\n*Decision:* {{ $json.decision }}\n*Confidence:* {{ $json.confidence }}\n\n*Reasoning:*\n{{ $json.reasoning }}\n\n*Contract References:*\n{{ $json.contract_references }}\n\n*Email ID:* {{ $json.email_id }}\n*Processed:* {{ $now.toISO() }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-auto-approve",
+      "name": "Telegram: Auto-Approve Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2880, 200],
+      "credentials": {
+        "telegramApi": {
+          "id": "4",
+          "name": "Telegram Account"
+        }
+      },
+      "notes": "Notify n8ntest channel\nIncludes decision details and reasoning"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=⚠️ *Manual Approval Required*\n\n*Invoice:* {{ $json.invoice_number }}\n*Amount:* ${{ $json.total_amount }}\n*Sender:* {{ $json.sender }}\n\n*Decision:* {{ $json.decision }}\n*Confidence:* {{ $json.confidence }}\n\n*Reasoning:*\n{{ $json.reasoning }}\n\n*Contract References:*\n{{ $json.contract_references }}\n\n*Action Required:* Review details and approve/reject.\n\n*Logs:* {{ $env.LOGGING_DASHBOARD_URL }}?email_id={{ $json.email_id }}\n*Email ID:* {{ $json.email_id }}\n*Processed:* {{ $now.toISO() }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-manual-approve",
+      "name": "Telegram: Manual Approval Request",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2880, 500],
+      "credentials": {
+        "telegramApi": {
+          "id": "4",
+          "name": "Telegram Account"
+        }
+      },
+      "notes": "Request manual review\nProvides decision summary and log link\nMVP: notification only"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=🔴 *Dispute Required*\n\n*Invoice:* {{ $json.invoice_number }}\n*Amount:* ${{ $json.total_amount }}\n*Sender:* {{ $json.sender }}\n\n*Decision:* {{ $json.decision }}\n*Confidence:* {{ $json.confidence }}\n\n*Reasoning:*\n{{ $json.reasoning }}\n\n*Dispute Package:*\n{{ $json.dispute_package }}\n\n*Action Required:* Review dispute package and approve response to vendor.\n\n*Logs:* {{ $env.LOGGING_DASHBOARD_URL }}?email_id={{ $json.email_id }}\n*Email ID:* {{ $json.email_id }}\n*Processed:* {{ $now.toISO() }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-dispute",
+      "name": "Telegram: Dispute Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2880, 700],
+      "credentials": {
+        "telegramApi": {
+          "id": "4",
+          "name": "Telegram Account"
+        }
+      },
+      "notes": "Notify about dispute with package details\nAll disputes require manual review"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sendTo": "={{ $json.sender }}",
+        "subject": "=Payment Received - Auto-Approved ${{ $json.total_amount }} deductions for {{ $json.invoice_number }}",
+        "emailType": "html",
+        "message": "=<html>\n<body>\n<p>Dear Vendor,</p>\n\n<p>We confirm receipt of your payment notice for invoice <strong>{{ $json.invoice_number }}</strong>.</p>\n\n<p><strong>Payment Amount:</strong> ${{ $json.payment_amount }}</p>\n<p><strong>Deductions:</strong> ${{ $json.total_amount }}</p>\n<p><strong>Status:</strong> Auto-Approved</p>\n\n<p>All deductions have been validated and approved according to our contract terms.</p>\n\n<p>Thank you,<br>\nAccounts Receivable Team</p>\n</body>\n</html>",
+        "options": {
+          "ccList": "altra-accounts-receivable@altradimension.com",
+          "bccList": "",
+          "replyTo": "altra-responses@altradimension.com"
+        }
+      },
+      "id": "email-auto-approve-response",
+      "name": "Email: Auto-Approve Response",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [3100, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5",
+          "name": "Gmail Account"
+        }
+      },
+      "notes": "Send auto-approval confirmation to vendor\nCC: altra-accounts-receivable\nReplyTo: altra-responses"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOGGING_ENDPOINT }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"workflow_complete\",\n  \"timestamp\": \"{{ $now }}\",\n  \"email_id\": \"{{ $json.email_id }}\",\n  \"decision\": \"{{ $json.decision }}\",\n  \"processing_time_ms\": {{ $now.diff($json.workflow_start_time) }},\n  \"status\": \"success\"\n}",
+        "options": {}
+      },
+      "id": "log-completion",
+      "name": "Log: Workflow Complete",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3320, 200],
+      "notes": "Log workflow completion with timing\nTrack end-to-end processing time\nMonitor SLA compliance"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error handler for workflow\nconst errorData = {\n  event: 'workflow_error',\n  timestamp: new Date().toISOString(),\n  email_id: $input.first().json.email_id || 'unknown',\n  error: {\n    message: $input.first().json.error?.message || 'Unknown error',\n    stack: $input.first().json.error?.stack || '',\n    node: $input.first().json.error?.node || 'unknown'\n  },\n  suggestions: [\n    'Check email format and attachments',\n    'Verify RAG vector store is accessible',\n    'Validate OpenAI API credentials',\n    'Check Telegram/Gmail integrations',\n    'Review logs at ' + $env.LOGGING_DASHBOARD_URL\n  ]\n};\n\nreturn errorData;"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 500],
+      "notes": "Catches workflow errors\nPrepares error notification with suggestions"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=🚨 *Workflow Error*\n\n*Email ID:* {{ $json.email_id }}\n*Error:* {{ $json.error.message }}\n*Node:* {{ $json.error.node }}\n*Timestamp:* {{ $json.timestamp }}\n\n*Suggestions to fix:*\n{{ $json.suggestions.join('\\n- ') }}\n\n*Action Required:* Investigate and resolve the error.\n\n*Logs:* {{ $env.LOGGING_DASHBOARD_URL }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-error-notification",
+      "name": "Telegram: Error Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [900, 500],
+      "credentials": {
+        "telegramApi": {
+          "id": "4",
+          "name": "Telegram Account"
+        }
+      },
+      "notes": "Notify team of errors with details\nProvide troubleshooting suggestions"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOGGING_ENDPOINT }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "log-error",
+      "name": "Log: Error Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 600],
+      "notes": "Log error details for monitoring and debugging"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status_update",
+              "name": "status",
+              "value": "={{ $json.decision }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "name": "updated_at",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "update-status",
+      "name": "Update Status (SLA < 1min)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2440, 400],
+      "notes": "Update email status after each step\nSLA: Status reflects current state < 1min\nCan post to Slack for real-time updates"
+    }
+  ],
+  "connections": {
+    "Email Trigger (Gmail/Outlook)": {
+      "main": [
+        [
+          {
+            "node": "Extract Email Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email Metadata": {
+      "main": [
+        [
+          {
+            "node": "Log: Email Received",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Process Attachments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Attachments": {
+      "main": [
+        [
+          {
+            "node": "Store to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Log: Storage Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log: Storage Complete": {
+      "main": [
+        [
+          {
+            "node": "Merge Attachments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Attachments": {
+      "main": [
+        [
+          {
+            "node": "Extract Claims & Evidence (LLM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Claims & Evidence (LLM)": {
+      "main": [
+        [
+          {
+            "node": "Log: Data Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log: Data Extraction": {
+      "main": [
+        [
+          {
+            "node": "RAG: Query Contracts & Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG: Query Contracts & Rules": {
+      "main": [
+        [
+          {
+            "node": "Validate Claims (AI Agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Claims (AI Agent)": {
+      "main": [
+        [
+          {
+            "node": "Log: Validation Decision",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Status (SLA < 1min)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log: Validation Decision": {
+      "main": [
+        [
+          {
+            "node": "Route: Auto-Approve?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route: Manual Approve?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route: Auto-Approve?": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Auto-Approve Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: Dispute Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route: Manual Approve?": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Manual Approval Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: Auto-Approve Notification": {
+      "main": [
+        [
+          {
+            "node": "Email: Auto-Approve Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email: Auto-Approve Response": {
+      "main": [
+        [
+          {
+            "node": "Log: Workflow Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Error Notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log: Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "error-handler"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-12-29T00:00:00.000Z",
+  "versionId": "1"
+}
