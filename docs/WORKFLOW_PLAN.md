@@ -1,9 +1,10 @@
-# Payment Notice Workflow Plan (MVP)
+# Payment Notice Workflow Plan (Demo)
 
 **Last Updated:** 2026-01-06
 **Status:** Planning Phase
 **Company:** Altra-CPG
 **Initial Distributor:** Dollar General
+**Demo audience (preliminary):** Extraordinary AI, VCs
 
 ---
 
@@ -23,7 +24,7 @@
 
 ---
 
-## MVP Scope
+## Demo Scope
 
 ### Included ✅
 
@@ -431,7 +432,7 @@ Reference ID: \`${payment_id}\`
 - **Action:** Send Message
 - **Chat ID:** AR team channel
 - **Parse Mode:** Markdown
-- **Reply Markup:** None (MVP - interactive buttons in Phase 2)
+- **Reply Markup:** None (Demo - interactive buttons in Phase 2)
 
 **Output:**
 - Telegram message_id (for Q&A threading)
@@ -723,5 +724,6 @@ Located in: `gmail_trigger_download/examples_payment_notice_emails/`
 **Document Version:** 1.1
 **Last Updated:** 2026-01-06
 **Status:** Ready for Implementation
+
 
 
