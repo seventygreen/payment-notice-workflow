@@ -89,11 +89,7 @@ WORKFLOW B: Telegram Q&A
 **Purpose:** Detect incoming Dollar General payment notices
 
 **Configuration:**
-- Email: `michael+payments@gmail.com`
-- Filter: From Dollar General domains
-  - `@dollargeneral.com`
-  - `@dg.com`
-  - Other known DG sender addresses
+- Email: `michael+payments@seventyblue.com` (for demo: `accounts-receiveable@altra-cpg.com` or `accounts-receivable@altradimension.com`)
 - Download attachments: Yes
 - Poll frequency: Every 5 minutes
 
@@ -244,7 +240,7 @@ POST http://localhost:6333/collections/dollar_general_contracts/points/search
 }
 ```
 
-**Option B: With Embedding Step**
+**Option B (preferred): With Embedding Step** 
 1. Generate embedding for deduction query (OpenAI API)
 2. Vector search with embedding
 
@@ -693,7 +689,7 @@ Located in: `gmail_trigger_download/examples_payment_notice_emails/`
 
 ## Next Steps
 
-1. ✅ Complete RAG setup (see RAG_SETUP.md)
+1. Complete RAG setup (see RAG_SETUP.md)
 2. Build n8n Workflow A (payment processing)
 3. Build n8n Workflow B (Q&A)
 4. Test with Dollar General examples
@@ -724,7 +720,8 @@ Located in: `gmail_trigger_download/examples_payment_notice_emails/`
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Last Updated:** 2026-01-06
 **Status:** Ready for Implementation
+
 
