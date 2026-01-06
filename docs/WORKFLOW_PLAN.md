@@ -15,7 +15,7 @@
 
 ### Current Manual Process
 
-1. Dollar General sends payment notices to `michael+payments@gmail.com`
+1. Dollar General sends payment notices to `accounts-receivable@altra-cpg.com`
 2. Email contains remittance advice (email body OR attachments)
 3. If deductions claimed, evidence is in email body OR attachments
 4. AR team at Altra-CPG reviews deductions against vendor guides/contracts
@@ -727,3 +727,4 @@ Located in: `gmail_trigger_download/examples_payment_notice_emails/`
 **Document Version:** 1.0
 **Last Updated:** 2026-01-06
 **Status:** Ready for Implementation
+
