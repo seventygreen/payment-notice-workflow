@@ -1,0 +1,101 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "id": "1626c01c-5a25-44d5-9427-2e27fe4a340f",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -80
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WDyQzTnyr43ffKXP",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "id": "25a5c352-e850-403f-9217-6ccc06177e4e",
+      "name": "Gmail Get Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        -80
+      ],
+      "webhookId": "6d805b95-2540-40f0-9f42-f00996a2d51a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WDyQzTnyr43ffKXP",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst contextData = [];\n\nfor (const item of items) {\n  const emailData = item.json;\n  const binaryData = item.binary || {};\n  \n  // Check for attachments\n  const attachmentKeys = Object.keys(binaryData);\n  const hasAttachments = attachmentKeys.length > 0;\n  \n  // Build attachment array (empty if no attachments)\n  const attachments = hasAttachments ? attachmentKeys.map(key => ({\n    attachmentId: key,\n    filename: binaryData[key].fileName || key,\n    mimeType: binaryData[key].mimeType,\n    fileSize: binaryData[key].fileSize || 0,\n    binaryReference: key\n  })) : [];\n  \n  // Extract headers - they're direct properties on emailData\n  const from = emailData.From || emailData.from || null;\n  const to = emailData.To || emailData.to || null;\n  const subject = emailData.Subject || emailData.subject || null;\n  const date = emailData.Date || emailData.date || null;\n  const cc = emailData.Cc || emailData.cc || null;\n  const bcc = emailData.Bcc || emailData.bcc || null;\n  const replyTo = emailData['Reply-To'] || emailData.replyTo || null;\n  \n  // Extract body content if available\n  let textBody = emailData.textPlain || emailData.textBody || '';\n  let htmlBody = emailData.textHtml || emailData.htmlBody || '';\n  \n  // Process labels - convert array of objects to array of strings\n  let labelStrings = [];\n  if (emailData.labels && Array.isArray(emailData.labels)) {\n    labelStrings = emailData.labels.map(label => {\n      if (typeof label === 'object' && label.name) {\n        return label.name;\n      }\n      return label;\n    });\n  } else if (emailData.labelIds && Array.isArray(emailData.labelIds)) {\n    labelStrings = emailData.labelIds;\n  }\n  \n  // Build standardized context\n  const context = {\n    email: {\n      messageId: emailData.id || null,\n      threadId: emailData.threadId || null,\n      from: from,\n      to: to,\n      subject: subject,\n      date: date,\n      cc: cc,\n      bcc: bcc,\n      replyTo: replyTo\n    },\n    content: {\n      textBody: textBody,\n      htmlBody: htmlBody,\n      snippet: emailData.snippet || ''\n    },\n    attachments: {\n      hasAttachments: hasAttachments,\n      count: attachments.length,\n      files: attachments\n    },\n    metadata: {\n      labels: labelStrings,\n      internalDate: emailData.internalDate || null,\n      internalDateReadable: emailData.internalDate ? \n        new Date(parseInt(emailData.internalDate)).toISOString() : null,\n      sizeEstimate: emailData.sizeEstimate || 0,\n      historyId: emailData.historyId || null,\n      processedAt: new Date().toISOString(),\n      workflowExecutionId: $execution.id\n    }\n  };\n  \n  contextData.push({\n    json: context,\n    binary: binaryData\n  });\n}\n\nreturn contextData;"
+      },
+      "id": "5cfc2551-3b61-4d39-83bd-e36d84a0513a",
+      "name": "Process All Emails",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Gmail Get Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Get Message": {
+      "main": [
+        [
+          {
+            "node": "Process All Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a3ece8fe48fd9855c4f6f677f9487e28e6a6a0d664c0bb24440807bf698caff"
+  }
+}

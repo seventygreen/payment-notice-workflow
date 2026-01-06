@@ -1,0 +1,182 @@
+// Get all input items
+const items = $input.all();
+const contextData = [];
+
+for (let i = 0; i < items.length; i++) {
+  const item = items[i];
+  const emailData = item.json;
+  
+  // Get binary data directly from the item
+  const binaryData = item.binary || {};
+  
+  // Check for attachments
+  const attachmentKeys = Object.keys(binaryData);
+  const hasAttachments = attachmentKeys.length > 0;
+  
+  // Build attachment array (empty if no attachments)
+  const attachments = hasAttachments ? attachmentKeys.map(key => {
+    const binary = binaryData[key];
+    return {
+      attachmentId: key,
+      filename: binary.fileName || binary.filename || key,
+      mimeType: binary.mimeType || binary.mimetype || 'application/octet-stream',
+      fileSize: binary.fileSize || binary.filesize || 0,
+      binaryReference: key
+    };
+  }) : [];
+  
+  // Extract headers - handle both simple strings and complex objects
+  const getEmailValue = (field) => {
+    if (!field) return null;
+    if (typeof field === 'string') return field;
+    if (field.text) return field.text;
+    if (field.value && Array.isArray(field.value) && field.value.length > 0) {
+      return field.value[0].address || field.text || null;
+    }
+    return null;
+  };
+  
+  const from = getEmailValue(emailData.From || emailData.from);
+  const to = getEmailValue(emailData.To || emailData.to);
+  const subject = emailData.Subject || emailData.subject || null;
+  const date = emailData.Date || emailData.date || null;
+  const cc = getEmailValue(emailData.Cc || emailData.cc);
+  const bcc = getEmailValue(emailData.Bcc || emailData.bcc);
+  const replyTo = getEmailValue(emailData['Reply-To'] || emailData.replyTo);
+  
+  // Extract body content - RECURSIVE to handle forwarded messages
+  let textBodyParts = [];
+  let htmlBodyParts = [];
+  
+  // Recursive function to extract all text/html parts including nested ones
+  const extractAllBodyParts = (part, depth = 0) => {
+    if (!part) return;
+    
+    // Extract text content if this part has it
+    if (part.body && part.body.data) {
+      try {
+        const decoded = Buffer.from(part.body.data, 'base64').toString('utf-8');
+        
+        if (part.mimeType === 'text/plain') {
+          textBodyParts.push(decoded);
+        } else if (part.mimeType === 'text/html') {
+          htmlBodyParts.push(decoded);
+        }
+      } catch (error) {
+        console.log(`Error decoding body part at depth ${depth}:`, error.message);
+      }
+    }
+    
+    // Recursively process nested parts (this catches forwarded messages)
+    if (part.parts && Array.isArray(part.parts)) {
+      part.parts.forEach(subPart => extractAllBodyParts(subPart, depth + 1));
+    }
+  };
+  
+  // Start extraction from payload
+  if (emailData.payload) {
+    extractAllBodyParts(emailData.payload);
+  }
+  
+  // Combine all parts with separators
+  let textBody = textBodyParts.length > 0 ? textBodyParts.join('\n\n---\n\n') : '';
+  let htmlBody = htmlBodyParts.length > 0 ? htmlBodyParts.join('<hr>') : '';
+  
+  // Fallback to simplified fields if recursive extraction found nothing
+  if (!textBody) {
+    textBody = emailData.textPlain || emailData.text || emailData.textBody || '';
+  }
+  if (!htmlBody) {
+    htmlBody = emailData.textHtml || emailData.html || emailData.htmlBody || '';
+  }
+  
+  // Process labels
+  let labelStrings = [];
+  if (emailData.labels && Array.isArray(emailData.labels)) {
+    labelStrings = emailData.labels.map(label => {
+      if (typeof label === 'object' && label.name) {
+        return label.name;
+      }
+      return label;
+    });
+  } else if (emailData.labelIds && Array.isArray(emailData.labelIds)) {
+    labelStrings = emailData.labelIds;
+  }
+  
+  // Build standardized context
+  const context = {
+    email: {
+      messageId: emailData.id || emailData.messageId || null,
+      threadId: emailData.threadId || null,
+      from: from,
+      to: to,
+      subject: subject,
+      date: date,
+      cc: cc,
+      bcc: bcc,
+      replyTo: replyTo
+    },
+    content: {
+      textBody: textBody,
+      htmlBody: htmlBody,
+      snippet: emailData.snippet || '',
+      // Include part counts for debugging
+      textBodyPartCount: textBodyParts.length,
+      htmlBodyPartCount: htmlBodyParts.length
+    },
+    attachments: {
+      hasAttachments: hasAttachments,
+      count: attachments.length,
+      files: attachments
+    },
+    metadata: {
+      labels: labelStrings,
+      internalDate: emailData.internalDate || null,
+      internalDateReadable: emailData.internalDate ? 
+        new Date(parseInt(emailData.internalDate)).toISOString() : 
+        (emailData.date ? new Date(emailData.date).toISOString() : null),
+      sizeEstimate: emailData.sizeEstimate || 0,
+      historyId: emailData.historyId || null,
+      processedAt: new Date().toISOString(),
+      workflowExecutionId: $execution.id
+    }
+  };
+  
+  // CRITICAL: Preserve binary data in output
+  contextData.push({
+    json: context,
+    binary: binaryData
+  });
+}
+
+return contextData;
+```
+
+---
+
+## **What Changed:**
+
+1. **Recursive body extraction**: The `extractAllBodyParts()` function now recursively walks through ALL nested parts in the email structure, including forwarded messages
+
+2. **Multiple part handling**: Collects ALL text/plain and text/html parts found anywhere in the email structure
+
+3. **Part concatenation**: Joins multiple parts with separators:
+   - Text parts: separated by `\n\n---\n\n`
+   - HTML parts: separated by `<hr>`
+
+4. **Better email address extraction**: Handles complex email objects (like the one you showed with `value`, `html`, `text` properties)
+
+5. **Debug info**: Added `textBodyPartCount` and `htmlBodyPartCount` to help you see how many parts were found
+
+---
+
+## **Why This Works for Forwarded Messages:**
+
+When you forward an email, Gmail structures it like this:
+```
+payload
+  ├─ parts[0] (your message)
+  │   └─ body.data (text/html)
+  └─ parts[1] (forwarded message)
+      ├─ parts[0] (forwarded text)
+      └─ parts[1] (forwarded html)
