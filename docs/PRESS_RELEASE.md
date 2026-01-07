@@ -2,6 +2,8 @@
 
 ## AI-Powered Payment Notice Processing Reduces Manual Review Time by 95%, Enabling CPG Brands to Scale Profitably with Major Retailers
 
+> **Note:** Altra-CPG is a fictitious company created to represent real-world challenges faced by mid-sized CPG manufacturers. This scenario is modeled on extensive interviews with CPG brands selling through major retailers, reflecting actual pain points, deduction patterns, and business requirements documented in publicly available vendor compliance guides.
+
 **ATLANTA, GA – January 2027** – Altra-CPG, a leading coffee products manufacturer, today announced the successful deployment of an AI-powered accounts receivable automation system that has transformed how the company manages payment deductions from major retail distributors including Dollar General, Kroger, Walmart, and Sam's Club. The system has recovered $2.4 million annually in invalid deductions while reducing manual processing time from 8 hours per payment notice to under 5 minutes.
 
 **The Problem: Death by a Thousand Deductions**
