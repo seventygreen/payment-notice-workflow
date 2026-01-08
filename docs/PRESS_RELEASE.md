@@ -4,7 +4,7 @@
 
 > **Note:** Altra-CPG is a fictitious company created to represent real-world challenges faced by mid-sized CPG manufacturers. This scenario is modeled on extensive interviews with CPG brands selling through major retailers, reflecting actual pain points, deduction patterns, and business requirements documented in publicly available vendor compliance guides.
 
-**ATLANTA, GA – January 2027** – Altra-CPG, a leading coffee products manufacturer, today announced the successful deployment of an AI-powered accounts receivable automation system that has transformed how the company manages payment deductions from major retail distributors including Dollar General, Kroger, Walmart, and Sam's Club. The system has recovered $2.4 million annually in invalid deductions while reducing manual processing time from 8 hours per payment notice to under 5 minutes.
+**ATLANTA, GA – January 2027** – Altra-CPG, a leading coffee products manufacturer, today announced the successful deployment of an AI-powered accounts receivable automation system built by AltraDimension that has transformed how the company manages payment deductions from major retail distributors including Dollar General, Kroger, Walmart, and Sam's Club. The system has recovered $2.4 million annually in invalid deductions while reducing manual processing time from 8 hours per payment notice to under 5 minutes.
 
 **The Problem: Death by a Thousand Deductions**
 
@@ -14,10 +14,10 @@ CPG brands lose billions annually to retailer deductions—charges taken by dist
 
 **The Solution: Contract-Aware AI That Thinks Like Your Best AR Analyst**
 
-Altra-CPG's automation system combines retrieval-augmented generation (RAG) with AI agents to validate deductions in real-time. When a payment notice arrives via email, the system:
+The automation system built by AltraDimension combines retrieval-augmented generation (RAG) with AI agents to validate deductions in real-time. When a payment notice arrives via email, the system:
 
 1. **Ingests Everything** – Automatically extracts remittance advice and supporting evidence from emails and attachments (PDFs, spreadsheets, images, scanned documents) regardless of format
-2. **Understands Contracts** – Queries a vector database loaded with vendor compliance guides, master agreements, and historical precedents to retrieve the exact contract clauses governing each deduction type
+2. **Understands Contracts** – Queries an agentic memory loaded with vendor compliance guides, master agreements, and historical precedents to retrieve the exact contract clauses governing each deduction type
 3. **Validates Claims** – An AI agent analyzes each deduction against contract terms, examining evidence quality, verifying calculations, checking procedural compliance (filing deadlines, documentation requirements), and identifying violations
 4. **Makes Decisions** – Categorizes deductions as Valid (accept), Invalid (dispute), or Needs Review (human escalation) with detailed reasoning and contract citations
 5. **Generates Disputes** – Automatically drafts professional dispute packages including counter-evidence from the ERP system, contract references, and point-by-point rebuttals
@@ -39,7 +39,7 @@ Within 90 days of deployment:
 
 **How It Works: Business Logic, Not Just Technology**
 
-Unlike generic RPA or document processing tools, Altra-CPG's system encodes deep domain expertise:
+Unlike generic RPA or document processing tools, AltraDimension's system encodes deep domain expertise:
 
 - **Contract Intelligence** – Pre-loaded with Dollar General's 240-page vendor guide, Walmart's SQEP requirements, Kroger's standard vendor agreement, and Sam's Club compliance policies. Updates automatically when distributors release new versions.
 - **Evidence Standards** – Knows that damage claims require photos within 48 hours, shortage claims need signed receiving reports, and pricing disputes require original POs—and flags violations automatically.
@@ -58,11 +58,11 @@ Retailer deductions represent 2-5% of gross sales for CPG brands. With $1 trilli
 - **Evidence fragmentation** – Supporting documentation spans email, ERP, WMS, QMS, and paper files with no unified view
 - **Decision paralysis** – Teams lack confidence to dispute without manual review, leading to "accept everything" defaults
 
-Altra-CPG's approach—combining contract intelligence, multi-format processing, and AI reasoning—creates a defensible moat while addressing a massive underserved market.
+AltraDimension's approach—combining contract intelligence, multi-format processing, and AI reasoning—creates a defensible moat while addressing a massive underserved market.
 
 **What's Next: Platform Play**
 
-Following internal success, Altra-CPG is exploring opportunities to:
+Following the successful deployment at Altra-CPG, AltraDimension is exploring opportunities to:
 
 1. **Expand coverage** – Add remaining distributors (Target, Costco, regional chains) and international retailers
 2. **Predictive analytics** – Identify deduction patterns that signal contract negotiation opportunities (e.g., "You're paying 3x industry average for DC routing errors—negotiate better terms")
@@ -73,15 +73,19 @@ Following internal success, Altra-CPG is exploring opportunities to:
 
 **Investment Opportunity**
 
-Altra-CPG seeks strategic investment to accelerate platform development and go-to-market execution. The company has validated product-market fit internally (recovering 28x more than development costs in year one) and identified a clear path to horizontal expansion across the CPG industry. With 85% gross margins on recovered deductions and a repeatable playbook for adding new retailers, the business model combines high-margin services revenue with potential SaaS multiples.
+AltraDimension seeks strategic investment to accelerate platform development and go-to-market execution. The company has validated product-market fit with Altra-CPG (recovering 28x more than development costs in year one) and identified a clear path to horizontal expansion across the CPG industry. With 85% gross margins on recovered deductions and a repeatable playbook for adding new retailers, the business model combines high-margin services revenue with potential SaaS multiples.
 
-For more information or investment inquiries, contact Michael Chen at michael@altra-cpg.com.
+For more information or investment inquiries, contact AltraDimension at info@altradimension.com.
 
 ---
 
 **About Altra-CPG**
 
 Altra-CPG is a specialty coffee products manufacturer serving major retail chains across the United States. Founded in 2018, the company has grown to $45M in annual revenue while maintaining industry-leading margins through operational excellence and technology-driven finance operations.
+
+**About AltraDimension**
+
+AltraDimension is an AI automation company specializing in financial operations for CPG brands. The company builds intelligent workflows that combine contract understanding, multi-format document processing, and AI reasoning to automate complex business processes previously requiring extensive manual review.
 
 ###
 
@@ -93,9 +97,9 @@ Altra-CPG is a specialty coffee products manufacturer serving major retail chain
 
 A: Existing vendors (Bill.com, Coupa, etc.) focus on payables—automating invoice processing and payments. Deduction management is a receivables problem requiring contract intelligence, not just document extraction. Our system encodes domain expertise (retail compliance rules, evidence requirements, dispute tactics) that took years to build and is specific to CPG-retailer relationships. It's closer to a legal AI than traditional fintech.
 
-**Q: How does this scale beyond Altra-CPG?**
+**Q: How does AltraDimension scale beyond Altra-CPG?**
 
-A: The core IP—contract parsing, deduction validation logic, dispute generation—is 90% reusable across CPG brands. Retailer compliance guides are standardized and public. We've identified 2,400 US CPG brands with $10M+ revenue (our target market) experiencing identical pain. Initial go-to-market focuses on coffee/beverage brands where we have network effects, then expands to adjacent categories.
+A: The core IP—contract parsing, deduction validation logic, dispute generation—is 90% reusable across CPG brands. Retailer compliance guides are standardized and public. AltraDimension has identified 2,400 US CPG brands with $10M+ revenue (target market) experiencing identical pain. Initial go-to-market focuses on coffee/beverage brands where there are network effects, then expands to adjacent categories.
 
 **Q: What's the TAM?**
 
@@ -116,3 +120,7 @@ A: (1) Retailers changing dispute processes to block automation—mitigated by p
 **Q: What's required to scale?**
 
 A: $1-2M seed round to: (1) hire 2 engineers to productize internal tooling, (2) hire 1 sales/CS lead with CPG networks, (3) build contract library for top 20 retailers, (4) pilot with 5 design partners in 6 months. Break-even at 15 customers ($900K ARR). Target 100 customers by year 2 ($6M ARR).
+
+**Q: Can the system work with different enterprise applications than those mentioned (Gmail, Telegram, NetSuite)?**
+
+A: Yes, absolutely. The system is designed to integrate with whatever tools CPG companies already use. Gmail can be substituted with Outlook or any IMAP/Exchange email system. Telegram can be replaced with Slack, Microsoft Teams, or any other team communication platform. NetSuite can be swapped for SAP, Oracle, Microsoft Dynamics, QuickBooks, or other ERP systems. The core AI logic (contract intelligence, deduction validation, dispute generation) is platform-agnostic—we adapt to each customer's existing technology stack rather than forcing them to change tools. This flexibility is critical for mid-market adoption where companies have diverse IT environments and are resistant to wholesale platform changes.
