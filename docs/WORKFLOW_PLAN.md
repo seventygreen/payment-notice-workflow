@@ -2,9 +2,12 @@
 
 **Last Updated:** 2026-01-06
 **Status:** Planning Phase
+**Builder:** AltraDimension (building automation for Altra-CPG)
 **Company:** Altra-CPG
 **Initial Distributor:** Dollar General
 **Demo audience (preliminary):** Extraordinary AI, VCs
+
+> **Note:** This workflow is being built by **AltraDimension** for **Altra-CPG** as a demonstration of AI-powered payment notice automation. For the MVP, the "agentic memory" referenced in investor materials is implemented as a vector database (Qdrant/Pinecone with RAG).
 
 ---
 
@@ -16,7 +19,7 @@
 
 ### Current Manual Process
 
-1. Dollar General sends payment notices to `accounts-receivable@altra-cpg.com`
+1. Dollar General sends payment notices to `accounts-receiveable@altra-cpg.com`
 2. Email contains remittance advice (email body OR attachments)
 3. If deductions claimed, evidence is in email body OR attachments
 4. AR team at Altra-CPG reviews deductions against vendor guides/contracts
@@ -90,7 +93,7 @@ WORKFLOW B: Telegram Q&A
 **Purpose:** Detect incoming Dollar General payment notices
 
 **Configuration:**
-- Email: `michael+payments@seventyblue.com` (for demo: `accounts-receiveable@altra-cpg.com` or `accounts-receivable@altradimension.com`)
+- Email: `accounts-receiveable@altra-cpg.com`
 - Download attachments: Yes
 - Poll frequency: Every 5 minutes
 
@@ -567,7 +570,7 @@ Answer the question clearly and concisely.
 ```javascript
 const CONFIG = {
   // Email
-  PAYMENT_EMAIL: 'michael+payments@gmail.com',
+  PAYMENT_EMAIL: 'accounts-receiveable@altra-cpg.com',
 
   // Vendor
   VENDOR: 'Dollar General',
