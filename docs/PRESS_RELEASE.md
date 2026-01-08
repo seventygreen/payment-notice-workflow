@@ -62,18 +62,18 @@ AltraDimension's approach—combining contract intelligence, multi-format proces
 
 **What's Next: Platform Play**
 
-Following the successful deployment at Altra-CPG, AltraDimension is exploring opportunities to:
+Following the successful deployment at Altra-CPG, AltraDimension is expanding on multiple fronts:
 
-1. **Expand coverage** – Add remaining distributors (Target, Costco, regional chains) and international retailers
-2. **Predictive analytics** – Identify deduction patterns that signal contract negotiation opportunities (e.g., "You're paying 3x industry average for DC routing errors—negotiate better terms")
-3. **Vendor benchmarking** – Compare deduction rates and dispute win rates across retailers to optimize vendor relationships
-4. **Platform licensing** – Package the system for other CPG brands facing identical challenges, creating a SaaS revenue stream from internal IP
+1. **Horizontal expansion (CPG)** – Package the payment notice automation for 2,400+ mid-market CPG brands, adding coverage for remaining distributors (Target, Costco, regional chains) and international retailers
+2. **Deeper intelligence** – Add predictive analytics that identify deduction patterns signaling contract negotiation opportunities (e.g., "You're paying 3x industry average for DC routing errors—negotiate better terms") and vendor benchmarking capabilities
+3. **Adjacent use cases** – Apply the same agentic AI approach to other complex manual processes in mid-sized companies beyond CPG financial operations—anywhere contract intelligence, multi-format processing, and automated decision-making can drive ROI
+4. **Transformation partnerships** – Help mid-market companies plan and execute broader AI transformation roadmaps, using proven frameworks for identifying high-impact automation opportunities
 
 "Every mid-sized CPG brand faces this exact problem," said Chen. "The vendor guides are public, the deduction codes are standardized, and the pain is universal. We built this for ourselves, but the market opportunity is 10,000+ brands collectively losing $10+ billion annually to invalid deductions. This isn't just automation—it's institutional knowledge at machine speed."
 
 **Investment Opportunity**
 
-AltraDimension seeks strategic investment to accelerate platform development and go-to-market execution. The company has validated product-market fit with Altra-CPG (recovering 28x more than development costs in year one) and identified a clear path to horizontal expansion across the CPG industry. With 85% gross margins on recovered deductions and a repeatable playbook for adding new retailers, the business model combines high-margin services revenue with potential SaaS multiples.
+AltraDimension seeks strategic investment to accelerate platform development and go-to-market execution across mid-market AI transformation. The company has validated its approach with Altra-CPG (recovering 28x more than development costs in year one) and identified clear expansion paths: horizontal scaling across 2,400+ CPG brands, vertical expansion into adjacent use cases, and replication of the model across other mid-market industries. The business model combines high-margin services revenue (85% gross margins on recovered deductions) with SaaS multiples from platform licensing and transformation consulting.
 
 For more information or investment inquiries, contact AltraDimension at info@altradimension.com.
 
@@ -85,7 +85,7 @@ Altra-CPG is a specialty coffee products manufacturer serving major retail chain
 
 **About AltraDimension**
 
-AltraDimension is an AI automation company specializing in financial operations for CPG brands. The company builds intelligent workflows that combine contract understanding, multi-format document processing, and AI reasoning to automate complex business processes previously requiring extensive manual review.
+AltraDimension's mission is to enable mid-sized companies to plan and execute the AI transformation of their own business with the help of agentic AI. The company works with mid-market organizations to identify high-impact automation opportunities, build intelligent workflows that combine contract understanding, multi-format document processing, and AI reasoning, and deliver measurable ROI from AI transformation. The Altra-CPG payment notice automation demonstrates AltraDimension's approach to solving complex business processes that previously required extensive manual review.
 
 ###
 
@@ -99,7 +99,7 @@ A: Existing vendors (Bill.com, Coupa, etc.) focus on payables—automating invoi
 
 **Q: How does AltraDimension scale beyond Altra-CPG?**
 
-A: The core IP—contract parsing, deduction validation logic, dispute generation—is 90% reusable across CPG brands. Retailer compliance guides are standardized and public. AltraDimension has identified 2,400 US CPG brands with $10M+ revenue (target market) experiencing identical pain. Initial go-to-market focuses on coffee/beverage brands where there are network effects, then expands to adjacent categories.
+A: AltraDimension's mission is to enable mid-sized companies across industries to execute AI transformation with agentic AI. The payment notice automation represents one high-impact use case, with core IP (contract parsing, deduction validation logic, dispute generation) that's 90% reusable across CPG brands. The company has identified 2,400 US CPG brands with $10M+ revenue experiencing identical deduction management pain. Beyond CPG, AltraDimension applies the same agentic AI approach to other complex, manual processes in mid-market companies—anywhere contract intelligence, multi-format processing, and automated decision-making can drive measurable ROI. Initial focus is proving the model in CPG financial operations before expanding to adjacent verticals and use cases.
 
 **Q: What's the TAM?**
 
