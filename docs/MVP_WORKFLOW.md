@@ -1,4 +1,10 @@
-# Payment Notice Automation - n8n Workflow Setup
+# Payment Notice Automation - n8n Workflow Setup (Complete MVP)
+
+**Builder:** AltraDimension (building automation for Altra-CPG)
+**Company:** Altra-CPG
+**Status:** Full MVP with Auto-Approve, Dispute Generation, and Comprehensive Logging
+
+> **Note:** This document extends the [Demo Workflow](DEMO_WORKFLOW.md) with Phase 2 features including auto-approval workflows, Google Drive storage, comprehensive logging, and dispute generation. The system is being built by **AltraDimension** for **Altra-CPG**.
 
 ## Overview
 
@@ -14,7 +20,7 @@ Email Trigger → Process Attachments → Store Documents → Extract Data (AI)
 
 ## Key Features
 
-- **Email Trigger**: Monitors `altra-accounts-receivable@altradimension.com` for payment notices
+- **Email Trigger**: Monitors `accounts-receiveable@altra-cpg.com` for payment notices
 - **Document Processing**: Downloads and stores all attachments to Google Drive/SharePoint
 - **AI Extraction**: Uses LLM to extract claims, deductions, and evidence from documents
 - **RAG Validation**: Queries vector store with business rules and contracts (swappable with AltraDB)
@@ -35,7 +41,7 @@ Configure these credentials in n8n:
 
 #### Email (Gmail/Outlook)
 - **Credential Type**: IMAP / Gmail OAuth2
-- **Email**: `altra-accounts-receivable@altradimension.com`
+- **Email**: `accounts-receiveable@altra-cpg.com`
 - **Purpose**: Receive payment notices
 
 #### Google Drive (or SharePoint)
@@ -43,10 +49,11 @@ Configure these credentials in n8n:
 - **Purpose**: Store emails and attachments for audit
 - **Required Scope**: `drive.file`
 
-#### OpenAI
-- **Credential Type**: OpenAI API
+#### Anthropic Claude
+- **Credential Type**: Anthropic API
 - **Purpose**: AI extraction and validation
-- **Models**: GPT-4 recommended (or test with local models: Qwen3, DeepSeek on Ollama)
+- **Models**: claude-3-5-sonnet-20241022 or claude-3-7-sonnet-20250219 recommended
+- **Alternative**: Test with local models (Qwen3, DeepSeek on Ollama) for cost reduction
 
 #### Telegram
 - **Credential Type**: Telegram API
@@ -56,7 +63,7 @@ Configure these credentials in n8n:
 
 #### Gmail (Sending)
 - **Credential Type**: Gmail OAuth2
-- **Email**: `altra-responses@altradimension.com`
+- **Email**: `accounts-receiveable@altra-cpg.com`
 - **Purpose**: Send auto-approval confirmations
 
 ### 3. Environment Variables
@@ -108,8 +115,8 @@ Before the workflow can validate claims, you need to initialize the RAG vector s
 1. Import the RAG setup workflow: https://n8n.io/workflows/5010-rag-starter-template-using-simple-vector-stores-form-trigger-and-openai/
 2. Upload these documents to the vector store:
    - Dollar General Vendor Guide
-   - BRCC business rules for deductions
-   - BRCC/DG contracts
+   - Altra-CPG business rules for deductions
+   - Altra-CPG/Dollar General contracts
    - Vendor agreements and terms
 
 #### Option B: Manual Setup
@@ -125,8 +132,8 @@ Before the workflow can validate claims, you need to initialize the RAG vector s
 
 From the spec references:
 - [DG Vendor Guide](https://drive.google.com/file/d/14bzHclECCRK5VsBdX8mW9uHOE9hVKgan/view?usp=drive_link)
-- Business rules for deductions (BRCC-specific)
-- BRCC/Dollar General contracts
+- Business rules for deductions (Altra-CPG-specific)
+- Altra-CPG/Dollar General contracts
 - Vendor agreements and terms
 
 ### Step 4: Configure Telegram Channel
@@ -145,7 +152,7 @@ From the spec references:
 ### Step 5: Test Workflow
 
 #### Test Email
-1. Send a test payment notice to `altra-accounts-receivable@altradimension.com`
+1. Send a test payment notice to `accounts-receiveable@altra-cpg.com`
 2. Include sample attachments (PDF remittance advice)
 3. Monitor workflow execution in n8n
 
@@ -250,7 +257,7 @@ Amount < $AUTO_APPROVE_THRESHOLD
 **Actions**:
 1. Telegram notification to `n8ntest` channel
 2. Email sent to vendor confirming approval
-3. CC `altra-accounts-receivable@altradimension.com`
+3. CC `accounts-receiveable@altra-cpg.com`
 
 ### Manual Approve
 ```
@@ -312,10 +319,10 @@ The workflow is designed to easily swap the vector store:
 
 ### Use Local Models
 
-To reduce costs, test open-source models:
+To reduce costs, test open-source models as alternatives to Claude:
 
 1. Install Ollama locally or use Ollama Cloud
-2. Update **OpenAI** nodes to use Ollama HTTP endpoint
+2. Update **Claude AI Agent** nodes to use Ollama HTTP endpoint
 3. Test models:
    - Qwen 3
    - DeepSeek
@@ -358,7 +365,7 @@ Modify `AUTO_APPROVE_THRESHOLD` environment variable to change auto-approval lim
 
 ### AI Extraction Failing
 
-- ✅ Verify OpenAI API key is valid
+- ✅ Verify Anthropic API key is valid
 - ✅ Check quota/rate limits
 - ✅ Review attachment content (text-readable?)
 - ✅ Test with simpler documents
@@ -401,8 +408,8 @@ Modify `AUTO_APPROVE_THRESHOLD` environment variable to change auto-approval lim
 ### Specification Documents
 
 - Dollar General Vendor Guide
-- BRCC Business Rules
-- BRCC/DG Contracts
+- Altra-CPG Business Rules
+- Altra-CPG/Dollar General Contracts
 
 ## Support
 
@@ -410,7 +417,7 @@ For issues or questions:
 1. Check n8n logs: Workflow → Executions
 2. Review logging dashboard at `LOGGING_DASHBOARD_URL`
 3. Check Telegram `n8ntest` channel for error notifications
-4. Contact Altra team
+4. Contact AltraDimension support (info@altradimension.com)
 
 ## Future Roadmap
 
