@@ -94,7 +94,7 @@ TELEGRAM_CHAT_ID=<telegram-channel-chat-id>  # Chat ID for n8ntest channel
 
 1. Open n8n
 2. Click **Workflows** → **Import from File**
-3. Select `payment-notice-workflow.json`
+3. Select `mvp-payment-notice-workflow.json`
 4. Click **Import**
 
 ### Step 2: Configure Credentials
