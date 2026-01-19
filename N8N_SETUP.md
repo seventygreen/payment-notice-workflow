@@ -77,13 +77,63 @@ With this setup, Claude Code can now:
 - Internet connection (to download n8n-mcp via npx)
 - Claude Code CLI
 
+## n8n Instance Configuration
+
+The `.mcp.json` file is configured to connect to your n8n instance at:
+- **URL**: `https://psychogenic-strengtheningly-stewart.ngrok-free.dev`
+- **Authentication**: Via API key (configured in environment variables)
+
+This allows the n8n-mcp server to:
+- List and manage workflows in your instance
+- Create and update workflows directly
+- Deploy templates to your instance
+- Test and validate workflows
+- Access workflow execution history
+
 ## Verification
 
 To verify the installation:
-1. Check that `.mcp.json` exists in project root
-2. Check that skills are in `~/.claude/skills/`
-3. Restart Claude Code if needed
-4. Try asking about n8n nodes or workflows
+
+### 1. Check Files
+```bash
+# Check MCP configuration
+cat .mcp.json
+
+# Check skills installation
+ls ~/.claude/skills/
+```
+
+### 2. Restart Claude Code
+**IMPORTANT**: You need to restart Claude Code for the MCP server to be loaded.
+
+### 3. Test Connection
+After restarting, you can test the connection by asking Claude Code:
+- "List my n8n workflows"
+- "Show me the workflows in my n8n instance"
+- "Create a simple webhook workflow in n8n"
+
+### 4. Verify Tools Are Available
+The following n8n-mcp tools should be available:
+- `n8n_list_workflows` - List workflows in your instance
+- `n8n_get_workflow` - Get workflow details
+- `n8n_create_workflow` - Create new workflows
+- `n8n_update_partial_workflow` - Update existing workflows
+- `n8n_validate_workflow` - Validate workflow configurations
+- `n8n_deploy_template` - Deploy templates to your instance
+- And many more...
+
+### 5. Common Issues
+
+**If tools are not available:**
+- Ensure you've restarted Claude Code
+- Check that `.mcp.json` is in the project root
+- Verify Node.js is installed (`node --version`)
+- Check the Claude Code logs for MCP connection errors
+
+**If connection fails:**
+- Verify the ngrok URL is still active
+- Check that the API key is valid (expires: 2026-02-16)
+- Ensure your n8n instance is running and accessible
 
 ## Resources
 
