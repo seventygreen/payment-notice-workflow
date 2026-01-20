@@ -1,13 +1,32 @@
 # Payment Notice Workflow Plan (Demo)
 
 **Last Updated:** 2026-01-06
-**Status:** Planning Phase
+**Status:** Build from scratch using n8n MCP tools and skills
 **Builder:** AltraDimension (building automation for Altra-CPG)
 **Company:** Altra-CPG
 **Initial Distributor:** Dollar General
 **Demo audience (preliminary):** Extraordinary AI, VCs
 
 > **Note:** This workflow is being built by **AltraDimension** for **Altra-CPG** as a demonstration of AI-powered payment notice automation. For the MVP, the "agentic memory" referenced in investor materials is implemented as a vector database (Qdrant/Pinecone with RAG).
+
+> **Important:** Existing workflow JSON files in this project are outdated. Build all workflows from scratch using n8n MCP tools and skills.
+
+## Relationship to MVP Workflow
+
+**This document (DEMO_WORKFLOW.md) is the base workflow. [MVP_WORKFLOW.md](MVP_WORKFLOW.md) extends it with additional features.**
+
+| This Document (Demo) | MVP Adds |
+|---------------------|----------|
+| Email trigger & processing | Google Drive storage for audit |
+| Multi-format attachment extraction | Decision routing (auto/manual/dispute) |
+| **AI extraction of deduction claims** | Low-confidence routing to human review |
+| RAG validation against contracts | Auto-approval email responses |
+| Telegram notifications | Configurable approval thresholds |
+| Telegram Q&A | Dispute package compilation for review |
+| Context storage for Q&A | |
+
+**Use this document for:** Detailed node specifications, prompts, and schemas.
+**See [MVP_WORKFLOW.md](MVP_WORKFLOW.md) for:** Additional production features.
 
 ---
 
@@ -470,15 +489,84 @@ EXPIRE payment:{payment_id} 2592000  // 30 days
 {
   "payment_id": "DG_20260105_784392",
   "telegram_msg_id": "12345",
+  "telegram_chat_id": "AR_TEAM_CHANNEL_ID",
   "timestamp": "2026-01-05T14:30:00Z",
-  "email": {full email data},
-  "remittance": {parsed remittance},
-  "deductions": {all deduction details},
-  "contract_clauses": {RAG results},
-  "validation_results": {Claude's analysis},
-  "attachments": {processed attachments}
+  "expires_at": "2026-02-04T14:30:00Z",
+  "vendor": "Dollar General",
+  "email": {
+    "from": "apvendor@dollargeneral.com",
+    "subject": "Payment Processed with Chargebacks - PO DG-892374",
+    "date": "2026-01-05",
+    "body": "...",
+    "message_id": "original-email-message-id"
+  },
+  "remittance": {
+    "check_number": "DG-CHK-2025-784392",
+    "check_date": "2025-12-19",
+    "gross_amount": 28450.00,
+    "total_deductions": 2700.00,
+    "net_payment": 25750.00,
+    "po_numbers": ["DG-892374-2025"],
+    "invoice_numbers": ["INV-2025-1234"]
+  },
+  "deductions": [
+    {
+      "id": "1",
+      "type": "incorrect_dc",
+      "code": "D-001",
+      "amount": 250.00,
+      "description": "Incorrect DC Violation",
+      "backup_reference": "Distribution_Center_Routing_Error_Documentation.docx",
+      "status": "INVALID",
+      "reasoning": "Per DG Vendor Guide Section 4.2...",
+      "contract_reference": "DG Domestic Vendor Guide, Section 4.2, Page 34",
+      "recommendation": "Dispute this deduction"
+    }
+  ],
+  "contract_clauses": [
+    {
+      "text": "Section 4.2 - Incorrect DC Violations...",
+      "score": 0.92,
+      "document": "DG Domestic Vendor Guide",
+      "section": "4.2",
+      "page": 34
+    }
+  ],
+  "validation_summary": {
+    "total_deductions": 6,
+    "total_amount": 2700.00,
+    "valid_count": 3,
+    "valid_amount": 1500.00,
+    "invalid_count": 2,
+    "invalid_amount": 625.00,
+    "needs_review_count": 1,
+    "needs_review_amount": 575.00
+  },
+  "overall_assessment": "3 deductions are valid ($1,500). 2 should be disputed ($625)...",
+  "flags": ["Incorrect DC chargeback appears to be DG carrier error"],
+  "attachments": [
+    {
+      "filename": "remittance.pdf",
+      "type": "pdf",
+      "content_summary": "Payment remittance showing 6 deductions...",
+      "extracted_text_length": 2500
+    },
+    {
+      "filename": "damage_photo.jpg",
+      "type": "image",
+      "vision_analysis": "Image shows damaged packaging on 3 cases..."
+    }
+  ]
 }
 ```
+
+**Q&A-Relevant Fields:**
+The stored context enables Claude to answer questions like:
+- "Why was the DC violation marked invalid?" → Uses `deductions[].reasoning` and `contract_clauses`
+- "What's the total amount we should dispute?" → Uses `validation_summary.invalid_amount`
+- "What evidence did Dollar General provide?" → Uses `attachments` and `deductions[].backup_reference`
+- "When does this payment notice expire from memory?" → Uses `expires_at`
+- "What PO numbers are associated with this payment?" → Uses `remittance.po_numbers`
 
 ---
 

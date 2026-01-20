@@ -2,9 +2,32 @@
 
 **Builder:** AltraDimension (building automation for Altra-CPG)
 **Company:** Altra-CPG
-**Status:** Full MVP with Auto-Approve, Dispute Generation, and Comprehensive Logging
+**Status:** MVP Development - Build workflows from scratch
 
-> **Note:** This document extends the [Demo Workflow](DEMO_WORKFLOW.md) with Phase 2 features including auto-approval workflows, Google Drive storage, comprehensive logging, and dispute generation. The system is being built by **AltraDimension** for **Altra-CPG**.
+> **Note:** This document specifies the MVP workflow requirements. Existing workflow JSON files in this project are outdated and should not be used. Build all workflows from scratch using n8n MCP tools and skills.
+
+## Relationship to Demo Workflow
+
+**This document (MVP_WORKFLOW.md) is a superset of [DEMO_WORKFLOW.md](DEMO_WORKFLOW.md).**
+
+| Feature | Demo | MVP |
+|---------|------|-----|
+| Email trigger & processing | ✅ | ✅ |
+| Multi-format attachment extraction | ✅ | ✅ |
+| AI extraction of deduction claims | ✅ | ✅ |
+| RAG validation against contracts | ✅ | ✅ |
+| Telegram notifications | ✅ | ✅ |
+| Telegram Q&A | ✅ | ✅ |
+| Context storage for Q&A | ✅ | ✅ |
+| **Google Drive storage for audit** | ❌ | ✅ |
+| **Decision routing (auto/manual/dispute)** | ❌ | ✅ |
+| **Low-confidence routing to human review** | ❌ | ✅ |
+| **Auto-approval email responses** | ❌ | ✅ |
+| **Configurable approval thresholds** | ❌ | ✅ |
+| **Dispute package compilation for review** | ❌ | ✅ |
+
+**Start with:** [DEMO_WORKFLOW.md](DEMO_WORKFLOW.md) for core functionality and detailed node specifications.
+**Then add:** The additional MVP features documented below.
 
 ## Overview
 
@@ -13,20 +36,29 @@ This n8n workflow automates the processing of payment notices with deductions, v
 ## Architecture
 
 ```
-Email Trigger → Process Attachments → Store Documents → Extract Data (AI)
-→ Query RAG (Contracts/Rules) → Validate Claims (AI) → Route Decision
-→ [Auto-Approve | Manual Review | Dispute] → Telegram Notification → Email Response
+WORKFLOW A: Payment Notice Processing
+
+Email Trigger → Process Attachments → Store Documents
+    → Extract Data (AI) → Query RAG (Contracts/Rules)
+    → Validate Claims (AI) → Route Decision
+    → [Auto-Approve | Manual Review | Dispute] → Telegram Notification
+    → [Email Response] → Store Context
+
+WORKFLOW B: Telegram Q&A
+
+Telegram Trigger → Retrieve Stored Context
+    → Claude Answer Question → Reply to Telegram
 ```
 
 ## Key Features
 
 - **Email Trigger**: Monitors `accounts-receiveable@altra-cpg.com` for payment notices
 - **Document Processing**: Downloads and stores all attachments to Google Drive/SharePoint
-- **AI Extraction**: Uses LLM to extract claims, deductions, and evidence from documents
+- **AI Extraction**: Uses LLM to extract claims, deductions, and evidence from documents (100% recall requirement)
 - **RAG Validation**: Queries vector store with business rules and contracts (swappable with AltraDB)
 - **Decision Routing**: Auto-approve, manual review, or dispute based on confidence and thresholds
 - **Telegram Integration**: Real-time notifications to `n8ntest` channel
-- **Comprehensive Logging**: Full audit trail with SLA < 1min status updates
+- **Telegram Q&A**: Ask questions about payment notices, deductions, and decisions directly in the notification channel; Claude provides contextual answers based on stored payment context
 - **Error Handling**: Automatic error notifications with troubleshooting suggestions
 
 ## Prerequisites
@@ -74,10 +106,6 @@ Set these in n8n Settings → Variables:
 # Storage
 GDRIVE_FOLDER_ID=<your-google-drive-folder-id>
 
-# Logging & Monitoring
-LOGGING_ENDPOINT=<your-logging-api-endpoint>
-LOGGING_DASHBOARD_URL=<your-dashboard-url>
-
 # RAG Vector Store
 VECTOR_STORE_INDEX=<your-vector-store-index-name>
 
@@ -88,25 +116,26 @@ AUTO_APPROVE_THRESHOLD=5000  # Auto-approve only if amount < $5000
 TELEGRAM_CHAT_ID=<telegram-channel-chat-id>  # Chat ID for n8ntest channel
 ```
 
-## Installation
+## Building Workflows from Scratch
 
-### Step 1: Import Workflow
+### Using n8n MCP Tools
 
-1. Open n8n
-2. Click **Workflows** → **Import from File**
-3. Select `mvp-payment-notice-workflow.json`
-4. Click **Import**
+Build workflows programmatically using these tools:
 
-### Step 2: Configure Credentials
+1. **Create workflow**: `n8n_create_workflow({name: "Payment Notice Processing", nodes: [...], connections: {...}})`
+2. **Add nodes**: `n8n_update_partial_workflow({id: "...", operations: [{type: "addNode", ...}]})`
+3. **Validate**: `n8n_validate_workflow({id: "..."})`
+4. **Auto-fix issues**: `n8n_autofix_workflow({id: "..."})`
+5. **Test**: `n8n_test_workflow({workflowId: "..."})`
 
-For each node with missing credentials:
+### Using n8n Skills
 
-1. Click the node
-2. Click **Credential to connect with**
-3. Select existing or create new credential
-4. Test connection
+Invoke skills for guidance:
+- `/n8n-workflow-patterns` - Architecture guidance
+- `/n8n-node-configuration` - Node setup help
+- `/n8n-code-javascript` - Code node syntax
 
-### Step 3: Set Up RAG Vector Store
+### Set Up RAG Vector Store
 
 Before the workflow can validate claims, you need to initialize the RAG vector store with business rules and contracts.
 
@@ -136,7 +165,7 @@ From the spec references:
 - Altra-CPG/Dollar General contracts
 - Vendor agreements and terms
 
-### Step 4: Configure Telegram Channel
+### Configure Telegram Channel
 
 1. Create a Telegram bot:
    - Message @BotFather on Telegram
@@ -149,7 +178,7 @@ From the spec references:
    - Find the chat ID in the response
 4. Set `TELEGRAM_CHAT_ID` environment variable with the chat ID
 
-### Step 5: Test Workflow
+### Test Workflow
 
 #### Test Email
 1. Send a test payment notice to `accounts-receiveable@altra-cpg.com`
@@ -157,7 +186,7 @@ From the spec references:
 3. Monitor workflow execution in n8n
 
 #### Expected Flow
-1. ✅ Email received and logged
+1. ✅ Email received
 2. ✅ Attachments stored to Google Drive
 3. ✅ Claims extracted via AI
 4. ✅ RAG query retrieves relevant contracts
@@ -192,58 +221,10 @@ From the spec references:
 | **Route: Manual Approve** | Valid (low conf) OR amount ≥ threshold | → Telegram notification for review |
 | **Route: Dispute** | Invalid claims | → Telegram notification with dispute package |
 
-### Notifications & Logging
-
-- **Log: Email Received** - Logs email receipt with metadata
-- **Log: Storage Complete** - Logs document storage location
-- **Log: Data Extraction** - Logs extracted claims and evidence
-- **Log: Validation Decision** - Logs AI decision with reasoning and references
-- **Log: Workflow Complete** - Logs end-to-end processing time
-
 ### Error Handling
 
 - **Error Handler** - Catches all workflow errors
 - **Telegram: Error Notification** - Notifies team with troubleshooting suggestions
-- **Log: Error Details** - Logs error for monitoring
-
-## Logging & Monitoring
-
-### SLA Requirements
-
-- **Email to Workflow Launch**: < 1 min
-- **Status Updates**: Real-time (< 1 min per step)
-- **End-to-End Processing**: Monitored via logs
-
-### What's Logged
-
-All events are logged to `LOGGING_ENDPOINT`:
-
-1. ✅ `email_received` - Email metadata, attachments
-2. ✅ `attachment_stored` - Storage location, file metadata
-3. ✅ `data_extracted` - Extracted claims with document references
-4. ✅ `validation_complete` - Decision, reasoning, contract references
-5. ✅ `workflow_complete` - Final status, processing time
-6. ❌ `workflow_error` - Error details, suggestions
-
-### Metrics to Track
-
-- **Recall**: 100% (must extract all deductions/claims)
-- **Precision**: % of valid decisions
-- **Processing Time**: Email receipt → workflow completion
-- **Error Rate**: Failed workflows / total workflows
-- **Decision Distribution**: Auto-approve vs manual vs dispute
-
-### Recommended Monitoring Setup
-
-1. **Datadog / Grafana**: Visualize logs from `LOGGING_ENDPOINT`
-2. **Alerts**:
-   - Processing time > 5 min
-   - Error rate > 5%
-   - Workflow failures
-3. **Dashboards**:
-   - Real-time workflow status
-   - Decision type breakdown
-   - Processing time trends
 
 ## Decision Logic
 
@@ -268,7 +249,7 @@ OR
 
 **Actions**:
 1. Telegram notification to `n8ntest` channel
-2. Includes: decision summary, reasoning, link to logs
+2. Includes: decision summary, reasoning
 3. Approver can review/approve/reject (MVP: manual action outside workflow)
 
 ### Dispute
@@ -287,13 +268,66 @@ Deduction is invalid
 
 - Email trigger and attachment processing
 - Google Drive storage for audit
-- AI extraction of claims and evidence
+- AI extraction of claims and evidence (100% recall requirement)
 - RAG-based validation against contracts
 - Decision routing (auto/manual/dispute)
-- Telegram notifications
+- Telegram notifications with decision summaries
+- **Telegram Q&A** - Ask questions about payment notices/deductions in the notification channel
 - Auto-approval email responses
-- Comprehensive logging
 - Error handling with notifications
+- Context storage for Q&A (30-day retention)
+
+### Context Storage for Q&A
+
+The MVP extends the Demo workflow's context storage (see [DEMO_WORKFLOW.md](DEMO_WORKFLOW.md#node-7-store-context-for-qa)) with additional fields for decision routing and audit trail:
+
+```json
+{
+  // All fields from Demo workflow context, plus:
+
+  "decision": {
+    "type": "auto_approve | manual_review | dispute",
+    "confidence": "high | low",
+    "threshold_amount": 5000.00,
+    "auto_approved": true,
+    "reasoning": "All deductions valid with high confidence, total $1,500 under threshold"
+  },
+  "google_drive": {
+    "folder_id": "1abc123...",
+    "folder_url": "https://drive.google.com/drive/folders/1abc123...",
+    "files": [
+      {
+        "filename": "remittance.pdf",
+        "file_id": "1xyz789...",
+        "file_url": "https://drive.google.com/file/d/1xyz789..."
+      }
+    ]
+  },
+  "actions_taken": {
+    "telegram_notification_sent": true,
+    "telegram_msg_id": "12345",
+    "email_response_sent": true,
+    "email_response_to": "apvendor@dollargeneral.com",
+    "email_response_subject": "RE: Payment Processed - PO DG-892374 - Approved",
+    "email_response_timestamp": "2026-01-05T14:35:00Z"
+  },
+  "dispute_package": {
+    "generated": false,
+    "deductions_to_dispute": ["1", "3"],
+    "total_dispute_amount": 625.00,
+    "contract_references": ["DG Vendor Guide Section 4.2", "DG Vendor Guide Section 5.3"],
+    "counter_evidence_summary": "Routing documentation shows correct DC specified in PO..."
+  }
+}
+```
+
+**MVP Q&A Examples:**
+- "Was this payment auto-approved?" → Uses `decision.type` and `decision.auto_approved`
+- "Why was it sent for manual review?" → Uses `decision.reasoning` and `decision.confidence`
+- "Where are the attachments stored?" → Uses `google_drive.folder_url` and `google_drive.files`
+- "Did we send a response email?" → Uses `actions_taken.email_response_sent`
+- "What deductions should we dispute?" → Uses `dispute_package.deductions_to_dispute`
+- "What's the total amount to dispute?" → Uses `dispute_package.total_dispute_amount`
 
 ### MVP Excludes (P2) ⏳
 
@@ -361,7 +395,6 @@ Modify `AUTO_APPROVE_THRESHOLD` environment variable to change auto-approval lim
 
 - ✅ Check attachment file formats are supported
 - ✅ Verify Google Drive credentials and folder permissions
-- ✅ Check logs for download errors
 
 ### AI Extraction Failing
 
@@ -386,7 +419,6 @@ Modify `AUTO_APPROVE_THRESHOLD` environment variable to change auto-approval lim
 
 ### Processing Takes Too Long
 
-- ✅ Monitor end-to-end time in logs
 - ✅ Check AI/LLM response times
 - ✅ Optimize RAG query (reduce topK)
 - ✅ Consider switching to faster model
@@ -415,9 +447,8 @@ Modify `AUTO_APPROVE_THRESHOLD` environment variable to change auto-approval lim
 
 For issues or questions:
 1. Check n8n logs: Workflow → Executions
-2. Review logging dashboard at `LOGGING_DASHBOARD_URL`
-3. Check Telegram `n8ntest` channel for error notifications
-4. Contact AltraDimension support (info@altradimension.com)
+2. Check Telegram `n8ntest` channel for error notifications
+3. Contact AltraDimension support (info@altradimension.com)
 
 ## Future Roadmap
 

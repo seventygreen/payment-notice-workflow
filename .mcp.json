@@ -7,7 +7,7 @@
         "MCP_MODE": "stdio",
         "LOG_LEVEL": "error",
         "DISABLE_CONSOLE_OUTPUT": "true",
-        "N8N_API_URL": "https://psychogenic-strengtheningly-stewart.ngrok-free.dev",
+        "N8N_API_URL": "http://localhost:5678",
         "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NDYxMzMzNy02NmE3LTQ1Y2QtODk5YS02OTk3MWI2NjE1NjEiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY4NzU4MzQyLCJleHAiOjE3NzEzMDQ0MDB9.xUdbJzx1lTCc2xlyfBYnZJPoB4FpNvrl4uUuOOC6yV0"
       }
     }

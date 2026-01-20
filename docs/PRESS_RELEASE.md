@@ -16,14 +16,14 @@ CPG brands lose billions annually to retailer deductions—charges taken by dist
 
 The automation system built by AltraDimension combines retrieval-augmented generation (RAG) with AI agents to validate deductions in real-time. When a payment notice arrives via email, the system:
 
-1. **Ingests Everything** – Automatically extracts remittance advice and supporting evidence from emails and attachments (PDFs, spreadsheets, images, scanned documents) regardless of format
-2. **Understands Contracts** – Queries an agentic memory loaded with vendor compliance guides, master agreements, and historical precedents to retrieve the exact contract clauses governing each deduction type
+1. **Ingests Everything** – Automatically extracts remittance advice and supporting evidence from emails and attachments (PDFs, spreadsheets, images, Word documents) regardless of format, storing all documents to Google Drive for audit
+2. **Understands Contracts** – Queries a vector database loaded with vendor compliance guides and master agreements to retrieve the exact contract clauses governing each deduction type
 3. **Validates Claims** – An AI agent analyzes each deduction against contract terms, examining evidence quality, verifying calculations, checking procedural compliance (filing deadlines, documentation requirements), and identifying violations
 4. **Makes Decisions** – Categorizes deductions as Valid (accept), Invalid (dispute), or Needs Review (human escalation) with detailed reasoning and contract citations
-5. **Generates Disputes** – Automatically drafts professional dispute packages including counter-evidence from the ERP system, contract references, and point-by-point rebuttals
-6. **Closes the Loop** – Posts validated deductions to NetSuite and tracks dispute resolutions to improve future accuracy
+5. **Routes Intelligently** – Auto-approves valid deductions under configurable thresholds, escalates high-value or low-confidence decisions for human review, and flags invalid claims for dispute with compiled evidence packages
+6. **Enables Conversation** – AR teams ask questions directly in Telegram: "Why was this marked invalid?" The AI responds with contract citations and reasoning from the stored payment context
 
-The system handles multi-format evidence including damage photos (using computer vision), scanned receiving reports (OCR), and complex spreadsheets. An interactive Telegram interface lets AR teams ask questions conversationally: "Why did you dispute the DC routing charge?" The AI explains its reasoning with contract citations.
+The system handles multi-format evidence including damage photos (using computer vision) and complex spreadsheets. All payment context is stored for 30 days, enabling AR teams to ask follow-up questions conversationally via Telegram: "Why did you dispute the DC routing charge?" or "Where are the attachments stored?" The AI explains its reasoning with contract citations and provides direct links to archived documents.
 
 **The Results: From Cost Center to Profit Center**
 
@@ -41,13 +41,14 @@ Within 90 days of deployment:
 
 Unlike generic RPA or document processing tools, AltraDimension's system encodes deep domain expertise:
 
-- **Contract Intelligence** – Pre-loaded with Dollar General's 240-page vendor guide, Walmart's SQEP requirements, Kroger's standard vendor agreement, and Sam's Club compliance policies. Updates automatically when distributors release new versions.
+- **Contract Intelligence** – Pre-loaded with Dollar General's 240-page vendor guide and vendor compliance policies. The vector database retrieves exact contract clauses relevant to each deduction type, enabling precise validation.
 - **Evidence Standards** – Knows that damage claims require photos within 48 hours, shortage claims need signed receiving reports, and pricing disputes require original POs—and flags violations automatically.
 - **Calculation Verification** – Validates discount percentages, proration logic, and per-unit charges using contract-specified formulas.
-- **Precedent Learning** – Tracks dispute outcomes (won/lost/partial) and incorporates resolution patterns into future validations.
-- **Multi-Vendor Intelligence** – Handles distributor-specific deduction codes, evidence requirements, and dispute processes without manual configuration.
+- **Decision Routing** – Configurable thresholds auto-approve low-risk deductions while escalating high-value or ambiguous claims for human review, with full reasoning and contract citations stored for audit.
+- **Precedent Learning** – Tracks dispute outcomes (won/lost/partial) and incorporates resolution patterns into future validations, continuously improving accuracy.
+- **Conversational Q&A** – Stored payment context enables natural language questions about any payment notice for 30 days. AR teams can ask "Why was this disputed?" or "Where are the attachments?" and receive AI responses citing specific contract sections with links to archived documents in Google Drive.
 
-The system integrates with existing infrastructure (Gmail, NetSuite, Telegram) and required zero IT resources to deploy—the entire implementation was handled by the finance team using no-code workflow automation.
+The system integrates with existing infrastructure (Gmail, Google Drive, Telegram) and required zero IT resources to deploy—the entire implementation was handled by the finance team using no-code workflow automation (n8n). ERP integration (NetSuite) and multi-vendor support (Kroger, Walmart, Sam's Club) are planned for Phase 2.
 
 **Market Opportunity: A $50B Problem with No Good Solution**
 
@@ -121,6 +122,6 @@ A: (1) Retailers changing dispute processes to block automation—mitigated by p
 
 A: $1-2M seed round to: (1) hire 2 engineers to productize internal tooling, (2) hire 1 sales/CS lead with CPG networks, (3) build contract library for top 20 retailers, (4) pilot with 5 design partners in 6 months. Break-even at 15 customers ($900K ARR). Target 100 customers by year 2 ($6M ARR).
 
-**Q: Can the system work with different enterprise applications than those mentioned (Gmail, Telegram, NetSuite)?**
+**Q: Can the system work with different enterprise applications than those mentioned (Gmail, Google Drive, Telegram)?**
 
-A: Yes, absolutely. The system is designed to integrate with whatever tools CPG companies already use. Gmail can be substituted with Outlook or any IMAP/Exchange email system. Telegram can be replaced with Slack, Microsoft Teams, or any other team communication platform. NetSuite can be swapped for SAP, Oracle, Microsoft Dynamics, QuickBooks, or other ERP systems. The core AI logic (contract intelligence, deduction validation, dispute generation) is platform-agnostic—we adapt to each customer's existing technology stack rather than forcing them to change tools. This flexibility is critical for mid-market adoption where companies have diverse IT environments and are resistant to wholesale platform changes.
+A: Yes, absolutely. The system is designed to integrate with whatever tools CPG companies already use. Gmail can be substituted with Outlook or any IMAP/Exchange email system. Google Drive can be replaced with SharePoint, Dropbox, or other document storage. Telegram can be replaced with Slack, Microsoft Teams, or any other team communication platform. The core AI logic (contract intelligence, deduction validation, decision routing) is platform-agnostic—we adapt to each customer's existing technology stack rather than forcing them to change tools. ERP integration (NetSuite, SAP, Oracle, Microsoft Dynamics) is on the Phase 2 roadmap. This flexibility is critical for mid-market adoption where companies have diverse IT environments and are resistant to wholesale platform changes.
